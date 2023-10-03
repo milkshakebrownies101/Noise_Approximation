@@ -1,0 +1,65 @@
+import numpy as np
+import random
+import matplotlib.pyplot as plt
+
+# Channelrhodopsin channel with 2 states
+# State C0: The ground state of ChR2 in the absence of light
+# State O1: The open state of the ChR2 channel, allowing the flow of ions across the cell membrane in response to light stimulation
+# Transitions from C0: Absorption of a photon and transition to O1 with a rate constant α
+# Transitions from O1: Transition back to C0 with a rate constant β (channel closure)
+# x(t) represent the probability that ChR2 is in state C0 at time t
+# y(t) represent the probability that ChR2 is in state O1 at time t
+# Transition from C0 to O1 (Absorption of a Photon): dx(t)=−αx(t)dt+dW1(t)dx(t)=−αx(t)dt+dW1​(t)
+# Transition from O1 to C0 (Channel Closure): dy(t)=−βy(t)dt+dW2(t)dy(t)=−βy(t)dt+dW2​(t)
+# The Wiener processes (dW1(t)dW1​(t) and dW2(t)dW2​(t)) introduce randomness into the transitions, reflecting the stochastic nature of the system
+
+# Initial conditions
+current_state = "C0"
+current_time = 0.0
+total_time = 10.0
+results = [(current_time, current_state)]
+
+# Transition rate constants
+alpha = 0.1  # Absorption of a photon
+beta = 0.05  # Channel closure
+
+# Gillespie Algorithm
+while current_time < total_time:
+    # Calculate total transition rate
+    if current_state == "C0":
+        total_rate = alpha
+    elif current_state == "O1":
+        total_rate = beta
+    else:
+        raise ValueError(f"Invalid state: {current_state}")
+
+    # Generate random numbers for time and transition event
+    r1 = random.random()
+    r2 = random.random()
+
+    # Calculate time until the next event
+    time_step = -np.log(r1) / total_rate
+
+    # Determine the next state based on transition rates
+    if r2 * total_rate <= alpha:
+        current_state = "O1"
+    else:
+        current_state = "C0"
+
+    # Update current time
+    current_time += time_step
+
+    # Record the state and time
+    results.append((current_time, current_state))
+
+# Extract and plot results
+times = [time for time, _ in results]
+states = [state for _, state in results]
+
+plt.figure(figsize=(10, 4))
+plt.step(times, states, where="post", linewidth=2)
+plt.xlabel("Time")
+plt.ylabel("State")
+plt.title("Stochastic Trajectory of ChR2")
+plt.ylim(["C0", "O1"])
+plt.show()
